@@ -2,6 +2,7 @@
 <!-- ======================================================================
      CYBER DASH 3D · Prototipo ALPHA 0.1
      Archivos: index.html (estructura) + styles.css (estilo) + script.js
+     + juego.html / juego.js (demo jugable)
      (fondo 3D animado, menú móvil e indicador lateral de secciones)
  
      ÍNDICE
@@ -93,12 +94,13 @@
     <!-- ===================== 3. INICIO (HERO) ===================== -->
     <section class="hero" id="inicio">
       <p class="tag">Cyber Dash 3D —  Proyecto en desarrollo</p>
-      <h1>Cyber Dash</span></h1>
+      <h1>Cyber Dash</h1>
       <p class="sub">Serás el que sobreviva a todos los niveles sin pausa y sin una meta a la que llegar.</p>
  
       <div class="actions">
-        <a class="btn" href="#retos">Ver niveles →</a>
-        <a class="btn ghost" href="#jugabilidad">Cómo se juega</a>
+        <!-- Abre la demo jugable (juego.html) -->
+        <a class="btn" href="juego.html">Jugar demo →</a>
+        <a class="btn ghost" href="#retos">Ver niveles</a>
       </div>
  
       <p class="scroll-cue">Scroll · Entra en el juego</p>
@@ -257,7 +259,10 @@
       <img class="shot" src="cyber-dash.png" alt="Captura de Cyber Dash 3D: sector 2-1 Data Factory">
  
       <p class="note">Controles: <kbd>Espacio</kbd> salta el jugador 1 · <kbd>↑</kbd> salta el jugador 2</p>
-      <p class="note">La demo jugable todavía no está disponible.</p>
+      <!-- Enlace a la demo jugable -->
+      <div class="actions demo-actions">
+        <a class="btn" href="juego.html">Jugar la demo →</a>
+      </div>
     </section>
  
     <!-- ===================== 8. VICTORIA Y DERROTA ===================== -->

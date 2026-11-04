@@ -297,6 +297,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
 .sub { max-width: 520px; margin: 0 auto 36px; color: var(--dim); font-size: 17px; }
  
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.demo-actions { justify-content: flex-start; margin-top: 28px; }
  
 .scroll-cue {
   margin-top: 44px;
