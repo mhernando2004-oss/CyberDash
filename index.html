@@ -1,53 +1,30 @@
 <!DOCTYPE html>
-<!-- ======================================================================
-     CYBER DASH 3D · Prototipo ALPHA 0.1
-     Archivos: index.html (estructura) + styles.css (estilo) + script.js
-     + juego.html / juego.js (demo jugable)
-     (fondo 3D animado, menú móvil e indicador lateral de secciones)
- 
-     ÍNDICE
-       0. Fondo 3D (canvas) + niebla
-       1. Cabecera flotante (barra tipo píldora)
-       2. Indicador lateral de secciones + aviso alpha
-       3. Inicio (hero)
-       4. Introducción
-       5. Retos + Personajes
-       6. Escenarios + Objetos (3 mapas)
-       7. Jugabilidad
-       8. Victoria y Derrota
-       9. Créditos
-      10. Pie de página
-     ====================================================================== -->
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cyber Dash 3D · Alpha</title>
   <meta name="description" content="Cyber Dash 3D, endless runner de Mario Hermando, Poran Hazi y David Puntas. Prototipo alpha.">
- 
-  <!-- Tipografías: Inter Tight (titulares finos) + IBM Plex Mono (etiquetas) -->
+
+  <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500&display=swap" rel="stylesheet">
- 
+
   <link rel="stylesheet" href="styles.css">
 </head>
- 
+
 <body>
- 
-  <!-- ===================== 0. FONDO EN VÍDEO ===================== -->
-  <!-- Vídeo en bucle (cyber-dash-fondo.mp4). Al hacer scroll se acerca
-       y la cámara corre más rápido (lo controla script.js).
-       muted + playsinline: necesarios para que se reproduzca solo. -->
+
+  <!-- Fondo en vídeo -->
+  <!-- muted + playsinline hacen falta para que el autoplay funcione -->
   <video id="bg" class="bg-video" src="cyber-dash-fondo.mp4" poster="cyber-dash-fondo.jpg"
          autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
   <div class="fog" aria-hidden="true"></div>
- 
-  <!-- ===================== 1. CABECERA FLOTANTE ===================== -->
+
+  <!-- Cabecera -->
   <header class="nav" id="top">
-    <!-- Logo -->
     <a class="brand" href="#inicio">
-      <!-- Icono: cubo en líneas (el Digital Core) -->
       <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2 21 7v10l-9 5-9-5V7z M3 7l9 5 9-5 M12 12v10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
       </svg>
@@ -56,11 +33,9 @@
         <small>3D · Alpha 0.1</small>
       </span>
     </a>
- 
-    <!-- Botón de menú (solo se ve en móvil) -->
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu">Menú</button>
- 
-    <!-- Menú: cada enlace salta a la sección con ese id -->
+
+    
+
     <nav id="menu">
       <a href="#introduccion">Introducción</a>
       <a href="#retos">Niveles</a>
@@ -69,13 +44,12 @@
       <a href="#resultados">Resultado</a>
       <a href="#creditos">Créditos</a>
     </nav>
- 
-    <!-- Botón de iniciar sesión (todavía no hace nada: es solo diseño) -->
+
+    <!-- Todavía no funciona -->
     <a class="login" href="#">Iniciar sesión</a>
   </header>
- 
-  <!-- ===================== 2. INDICADOR LATERAL + AVISO ALPHA ===================== -->
-  <!-- Se marca el punto de la sección que se está viendo -->
+
+  <!-- Indicador lateral -->
   <nav class="rail" aria-label="Secciones">
     <a href="#introduccion" data-sec="introduccion"><span>Intro</span><i></i></a>
     <a href="#retos" data-sec="retos"><span>Niveles</span><i></i></a>
@@ -84,44 +58,41 @@
     <a href="#resultados" data-sec="resultados"><span>Final</span><i></i></a>
     <a href="#creditos" data-sec="creditos"><span>Equipo</span><i></i></a>
   </nav>
- 
-  <!-- Aviso de que la web está en construcción (píldora abajo a la derecha) -->
+
+  <!-- Aviso alpha -->
   <div class="alpha-banner"><i></i>Alpha 0.1 · Web en desarrollo</div>
- 
-  <!-- ===================== CONTENIDO PRINCIPAL ===================== -->
+
   <main>
- 
-    <!-- ===================== 3. INICIO (HERO) ===================== -->
+
+    <!-- Inicio -->
     <section class="hero" id="inicio">
       <p class="tag">Cyber Dash 3D —  Proyecto en desarrollo</p>
-      <h1>Cyber Dash</h1>
+      <h1>Cyber Dash 3D</span></h1>
       <p class="sub">Serás el que sobreviva a todos los niveles sin pausa y sin una meta a la que llegar.</p>
- 
+
       <div class="actions">
-        <!-- Abre la demo jugable (juego.html) -->
-        <a class="btn" href="juego.html">Jugar demo →</a>
-        <a class="btn ghost" href="#retos">Ver niveles</a>
+        <a class="btn" href="#retos">Ver niveles →</a>
+        <a class="btn ghost" href="#jugabilidad">Cómo se juega</a>
       </div>
- 
+
       <p class="scroll-cue">Scroll · Entra en el juego</p>
     </section>
- 
-    <!-- ===================== 4. INTRODUCCIÓN ===================== -->
+
+    <!-- Introducción -->
     <section id="introduccion">
       <p class="label">01 — Introducción</p>
       <h2>Imagina un juego innovador donde tu decides cuando tirar la toalla o rendirte.</h2>
       <p class="lead">Cyber Dash 3D es un endless runner con niveles modo hisotria y con un multijugador y modos infinitos .</p>
       <img class="shot" src="cyber-dash.png" alt="Captura de Cyber Dash 3D: el cubo corriendo por la Data Factory">
-      
+
     </section>
- 
-    <!-- ===================== 5. RETOS + PERSONAJES ===================== -->
+
+    <!-- Niveles + personajes -->
     <section id="retos">
       <p class="label">02 — Niveles + Personajes</p>
       <h2>El Personaje cambia de forma durante la partida y los distintos niveles.</h2>
- 
+
       <div class="grid">
-        <!-- Tarjeta 1: forma principal -->
         <article class="card">
           <svg class="art card-art" viewBox="0 0 100 100" role="img" aria-label="Core Mode: cubo de cristal">
             <path d="M50 8 92 30 50 52 8 30z" fill="#7ff6ff"/>
@@ -134,8 +105,7 @@
           <p>Forma principal. Salta y esquiva.</p>
           <ul><li>Cubo de cristal</li><li>Salto</li><li>Esquiva</li></ul>
         </article>
- 
-        <!-- Tarjeta 2: transformación en nave -->
+
         <article class="card">
           <svg class="art card-art" viewBox="0 0 100 100" role="img" aria-label="Hover Mode: nave">
             <path d="M8 62 50 30 92 62 70 70 50 64 30 70z" fill="#2d5bff"/>
@@ -147,8 +117,7 @@
           <p>Más velocidad. Supera nuevas zonas.</p>
           <ul><li>Nave</li><li>Más velocidad</li><li>Nuevas zonas</li></ul>
         </article>
- 
-        <!-- Tarjeta 3: recompensas -->
+
         <article class="card">
           <svg class="art card-art" viewBox="0 0 100 100" role="img" aria-label="Energy Gems: gemas cian, azul y rosa">
             <path d="M22 28 34 42 22 66 10 42z" fill="#00e5ff"/>
@@ -165,15 +134,15 @@
         </article>
       </div>
     </section>
- 
-    <!-- ===================== 6. ESCENARIOS + OBJETOS ===================== -->
+
+    <!-- Escenarios -->
     <section id="escenarios">
       <p class="label">03 — Escenarios + Objetos</p>
       <h2>Tres mapas. Cada uno más difícil que el anterior.</h2>
       <p class="lead">Modo historia de un solo jugador. El primero es el más fácil y la dificultad va aumentando.</p>
- 
+
       <div class="grid">
-        <!-- MAPA 1: Ciudad Neón -->
+        <!-- Mapa 1 -->
         <article class="card">
           <svg class="art map-art" viewBox="0 0 320 180" role="img" aria-label="Mapa 1: ciudad neón con edificios y pinchos">
             <defs>
@@ -193,8 +162,8 @@
           <h3>Ciudad Neón</h3>
           <ul><li>Saltos</li><li>Pinchos</li></ul>
         </article>
- 
-        <!-- MAPA 2: Fábrica Láser -->
+
+        <!-- Mapa 2 -->
         <article class="card">
           <svg class="art map-art" viewBox="0 0 320 180" role="img" aria-label="Mapa 2: fábrica violeta con láseres">
             <defs>
@@ -215,8 +184,8 @@
           <h3>Fábrica Láser</h3>
           <ul><li>Láseres</li></ul>
         </article>
- 
-        <!-- MAPA 3: Infierno Rojo -->
+
+        <!-- Mapa 3 -->
         <article class="card">
           <svg class="art map-art" viewBox="0 0 320 180" role="img" aria-label="Mapa 3: infierno rojo con láseres y pinchos">
             <defs>
@@ -239,12 +208,12 @@
         </article>
       </div>
     </section>
- 
-    <!-- ===================== 7. JUGABILIDAD ===================== -->
+
+    <!-- Jugabilidad -->
     <section id="jugabilidad">
       <p class="label">04 — Jugabilidad</p>
       <h2>Avanza solo. Tú solo tienes que saltar.</h2>
- 
+
       <div class="grid two">
         <div class="card">
           <small>Automático</small>
@@ -255,24 +224,20 @@
           <p>Se puede jugar <strong>en solitario o en dúo</strong>, con dos personas en la misma pantalla. Los controles son sencillos y hacen falta buenos reflejos.</p>
         </div>
       </div>
- 
+
       <img class="shot" src="cyber-dash.png" alt="Captura de Cyber Dash 3D: sector 2-1 Data Factory">
- 
+
       <p class="note">Controles: <kbd>Espacio</kbd> salta el jugador 1 · <kbd>↑</kbd> salta el jugador 2</p>
-      <!-- Enlace a la demo jugable -->
-      <div class="actions demo-actions">
-        <a class="btn" href="juego.html">Jugar la demo →</a>
-      </div>
+      <p class="note">La demo jugable todavía no está disponible.</p>
     </section>
- 
-    <!-- ===================== 8. VICTORIA Y DERROTA ===================== -->
+
+    <!-- Victoria y derrota -->
     <section id="resultados">
       <p class="label">05 — Victoria y Derrota</p>
       <h2>Cuánto has durado. Cuántas gemas tienes.</h2>
       <p class="lead">Al acabar la partida aparece una pantalla de victoria o derrota con el tiempo y las gemas conseguidas, y dos botones: reintentar o volver al menú principal.</p>
- 
+
       <div class="grid two">
-        <!-- Pantalla de VICTORIA (ejemplo) -->
         <article class="card win">
           <svg class="art card-art" viewBox="0 0 100 60" role="img" aria-label="Corona de victoria">
             <path d="M8 50 4 12l24 18L50 4l22 26 24-18-4 38z" fill="#7ff6ff" stroke="#dffcff" stroke-width="2" stroke-linejoin="round"/>
@@ -289,8 +254,7 @@
             <button class="btn ghost" type="button" disabled>Main menu</button>
           </div>
         </article>
- 
-        <!-- Pantalla de DERROTA (ejemplo) -->
+
         <article class="card lose">
           <svg class="art card-art" viewBox="0 0 100 60" role="img" aria-label="Cubo sobre pinchos: derrota">
             <path d="M6 58l10-24 10 24zM30 58l10-24 10 24zM54 58l10-24 10 24zM78 58l10-24 10 24z" fill="#ff2a4d"/>
@@ -307,8 +271,8 @@
         </article>
       </div>
     </section>
- 
-    <!-- ===================== 9. CRÉDITOS ===================== -->
+
+    <!-- Créditos -->
     <section id="creditos">
       <p class="label">06 — Créditos</p>
       <h2>El equipo.</h2>
@@ -318,15 +282,14 @@
         <li><span>03</span>David Puntas</li>
       </ul>
     </section>
- 
+
   </main>
- 
-  <!-- ===================== 10. PIE DE PÁGINA ===================== -->
+
+  <!-- Pie -->
   <footer>
     <p>Cyber Dash 3D · Proyecto final · Alpha 0.1</p>
   </footer>
- 
+
   <script src="script.js"></script>
 </body>
 </html>
- 
