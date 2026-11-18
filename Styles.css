@@ -1,3 +1,5 @@
+/* Cyber Dash 3D · Alpha 0.1 · estética "obsidian": negro, wireframe, mono espaciado */
+ 
 :root {
   --bg: #060607;
   --panel: rgba(16, 16, 20, 0.62);
@@ -11,11 +13,11 @@
   --sans: "Inter Tight", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
-
+ 
 * { box-sizing: border-box; }
-
+ 
 html { scroll-behavior: smooth; background: var(--bg); }
-
+ 
 body {
   margin: 0;
   color: var(--text);
@@ -25,26 +27,27 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-
+ 
 a { color: inherit; }
 strong { font-weight: 500; color: var(--text); }
-
-/* Fondo */
+ 
+/* ===== 0. Fondo en vídeo ===== */
 .bg-video {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;          /* llena la pantalla sin deformarse */
   z-index: 0;
   display: block;
   background: var(--bg);
-  transform-origin: 50% 30%;  /* zoom hacia el cubo */
+  transform-origin: 50% 30%;  /* se acerca hacia el cubo */
   will-change: transform;
   pointer-events: none;
 }
+/* Todo el contenido va por encima del vídeo */
 main, footer { position: relative; z-index: 2; }
-/* Viñeta para que se lea el texto */
+/* Viñeta oscura en los bordes para que el texto se lea bien */
 .fog {
   position: fixed;
   inset: 0;
@@ -54,8 +57,8 @@ main, footer { position: relative; z-index: 2; }
     radial-gradient(ellipse 80% 70% at 50% 45%, transparent 35%, rgba(0, 0, 0, 0.75) 100%),
     linear-gradient(180deg, rgba(6, 6, 7, 0.35) 0%, transparent 30%, transparent 70%, rgba(6, 6, 7, 0.6) 100%);
 }
-
-/* Cabecera */
+ 
+/* ===== 1. Cabecera flotante (píldora) ===== */
 .nav {
   position: fixed;
   top: 10px;
@@ -78,7 +81,7 @@ main, footer { position: relative; z-index: 2; }
 .nav.scrolled {
   background: linear-gradient(180deg, rgba(36, 36, 42, 0.85), rgba(10, 10, 13, 0.85));
 }
-
+ 
 .brand {
   display: flex;
   align-items: center;
@@ -101,7 +104,7 @@ main, footer { position: relative; z-index: 2; }
   text-transform: uppercase;
   color: var(--faint);
 }
-
+ 
 .nav nav {
   flex: 1;
   display: flex;
@@ -118,7 +121,8 @@ main, footer { position: relative; z-index: 2; }
   transition: color .2s;
 }
 .nav nav a:hover { color: var(--text); }
-
+ 
+/* Botón "Iniciar sesión" (como el "Request demo") */
 .login {
   flex-shrink: 0;
   padding: 10px 20px;
@@ -136,7 +140,8 @@ main, footer { position: relative; z-index: 2; }
   transition: background .2s;
 }
 .login:hover { background: linear-gradient(180deg, #5a5a63, #303037); }
-
+ 
+/* Botón de menú: solo en móvil */
 .menu-btn {
   display: none;
   margin-left: auto;
@@ -150,8 +155,8 @@ main, footer { position: relative; z-index: 2; }
   text-transform: uppercase;
   cursor: pointer;
 }
-
-/* Indicador lateral */
+ 
+/* ===== 2. Indicador lateral ===== */
 .rail {
   position: fixed;
   right: 28px;
@@ -196,8 +201,8 @@ main, footer { position: relative; z-index: 2; }
 .rail a:hover,
 .rail a.active { color: var(--text); }
 .rail a.active i { background: var(--text); border-color: var(--text); box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-
-/* Aviso alpha */
+ 
+/* Aviso alpha: píldora abajo a la derecha */
 .alpha-banner {
   position: fixed;
   right: 18px;
@@ -227,14 +232,14 @@ main, footer { position: relative; z-index: 2; }
   animation: pulse 2s ease-in-out infinite;
 }
 @keyframes pulse { 50% { opacity: .35; } }
-
-/* Secciones */
+ 
+/* ===== Secciones ===== */
 main { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-
+ 
 section { padding: 140px 0; }
-
+ 
 h1, h2, h3 { margin: 0 0 16px; font-weight: 300; }
-
+ 
 .label {
   margin: 0 0 18px;
   font-family: var(--mono);
@@ -243,7 +248,7 @@ h1, h2, h3 { margin: 0 0 16px; font-weight: 300; }
   text-transform: uppercase;
   color: var(--dim);
 }
-
+ 
 h2 {
   font-size: clamp(34px, 5vw, 58px);
   line-height: 1.05;
@@ -251,10 +256,10 @@ h2 {
   max-width: 760px;
 }
 h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 8px; }
-
+ 
 .lead { color: var(--dim); max-width: 620px; font-size: 17px; }
-
-/* Hero */
+ 
+/* ===== 3. Inicio (hero) ===== */
 .hero {
   min-height: 100vh;
   min-height: 100svh;
@@ -263,7 +268,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   align-items: center;
   justify-content: flex-start;
   text-align: center;
-  /* hueco para el cubo del fondo */
+  /* Deja hueco arriba para el Digital Core que flota en el fondo */
   padding: max(250px, 33vh) 0 40px;
 }
 .tag {
@@ -282,6 +287,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   letter-spacing: -0.04em;
   margin-bottom: 28px;
 }
+/* Segunda línea: degradado de blanco a gris, como "Governed action." */
 .hero h1 span {
   background: linear-gradient(90deg, #ffffff 30%, #8d8d97 100%);
   -webkit-background-clip: text;
@@ -289,9 +295,10 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   color: transparent;
 }
 .sub { max-width: 520px; margin: 0 auto 36px; color: var(--dim); font-size: 17px; }
-
+ 
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
-
+.demo-actions { justify-content: flex-start; margin-top: 28px; }
+ 
 .scroll-cue {
   margin-top: 44px;
   font-family: var(--mono);
@@ -315,8 +322,8 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   60% { transform: scaleY(1); opacity: 1; }
   100% { transform: scaleY(1); opacity: 0; }
 }
-
-/* Botones */
+ 
+/* ===== Botones (píldora) ===== */
 .btn {
   display: inline-block;
   padding: 14px 28px;
@@ -337,8 +344,8 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
 .btn:hover { border-color: rgba(255, 255, 255, 0.5); }
 .btn.ghost { background: rgba(10, 10, 12, 0.5); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-
-/* Tarjetas */
+ 
+/* ===== Tarjetas ===== */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -346,7 +353,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   margin-top: 40px;
 }
 .grid.two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-
+ 
 .card {
   padding: 26px;
   border-radius: 16px;
@@ -367,7 +374,8 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   color: var(--faint);
 }
 .card p { margin: 6px 0; color: var(--dim); }
-
+ 
+/* Listas de las tarjetas como "chips" */
 .card ul {
   list-style: none;
   display: flex;
@@ -386,18 +394,18 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   text-transform: uppercase;
   color: var(--dim);
 }
-
+ 
 .win h3 { color: var(--cyan); }
 .lose h3 { color: var(--red); }
 .stats { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 .card-actions .btn { padding: 10px 18px; font-size: 11px; }
-
-/* Imágenes */
+ 
+/* ===== Imágenes ===== */
 .art { display: block; max-width: 100%; height: auto; }
 .card-art { width: 96px; margin: 0 0 20px; }
 .map-art { width: 100%; margin-bottom: 18px; border-radius: 10px; border: 1px solid var(--line); }
-
+ 
 .shot {
   display: block;
   width: 100%;
@@ -407,7 +415,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   border: 1px solid var(--line-strong);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
 }
-
+ 
 .authors, .note {
   margin-top: 22px;
   font-family: var(--mono);
@@ -416,7 +424,7 @@ h3 { font-size: 24px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 
   text-transform: uppercase;
   color: var(--dim);
 }
-
+ 
 kbd {
   padding: 2px 8px;
   border: 1px solid var(--line-strong);
@@ -426,8 +434,8 @@ kbd {
   font-size: 11px;
   color: var(--text);
 }
-
-/* Créditos */
+ 
+/* ===== Créditos ===== */
 .credits { list-style: none; padding: 0; margin: 40px 0 0; display: grid; gap: 10px; max-width: 620px; }
 .credits li {
   display: flex;
@@ -440,8 +448,8 @@ kbd {
   font-size: 20px;
 }
 .credits span { font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; color: var(--faint); }
-
-/* Pie */
+ 
+/* ===== Pie ===== */
 footer {
   padding: 40px 20px 90px;
   text-align: center;
@@ -451,20 +459,20 @@ footer {
   text-transform: uppercase;
   color: var(--faint);
 }
-
-/* Animación de aparición */
+ 
+/* ===== Aparición al hacer scroll ===== */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
 .reveal.visible { opacity: 1; transform: none; }
-
-/* Responsive */
+ 
+/* ===== Responsive ===== */
 @media (max-width: 1240px) {
   .rail { display: none; }
 }
-
+ 
 @media (max-width: 900px) {
   .nav { gap: 10px; padding-left: 16px; }
   .menu-btn { display: block; }
-  /* Menú desplegable en móvil */
+  /* El menú se convierte en un desplegable debajo de la píldora */
   .nav nav {
     position: absolute;
     top: calc(100% + 8px);
@@ -483,7 +491,7 @@ footer {
   .nav nav a:hover { background: rgba(255, 255, 255, 0.05); }
   section { padding: 100px 0; }
 }
-
+ 
 @media (max-width: 480px) {
   .nav { gap: 8px; padding: 6px 6px 6px 14px; }
   .brand { gap: 8px; }
@@ -493,7 +501,7 @@ footer {
   .login { padding: 9px 12px; font-size: 10px; letter-spacing: 0.08em; }
   .alpha-banner { font-size: 9.5px; padding: 8px 14px; }
 }
-
+ 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }

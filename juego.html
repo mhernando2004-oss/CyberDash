@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cyber Dash 3D · Juego</title>
+  <!-- Orbitron (letra futurista) + IBM Plex Mono (la de la web) -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cian: #00e5ff;
+      --rosa: #ff2bd6;
+      --violeta: #7b2cff;
+      --verde: #39ff88;
+      --cristal: rgba(12, 10, 28, 0.55);
+      --borde: rgba(255, 255, 255, 0.12);
+      --mono: "IBM Plex Mono", monospace;
+      --futura: "Orbitron", "Arial Black", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; background: #05040d; color: white; font-family: var(--mono); }
+    button { font: inherit; color: inherit; }
+    svg.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Contador de gemas durante la partida */
+    #texto {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 5;
+      font-family: var(--futura); font-size: 18px; letter-spacing: 0.12em;
+      text-shadow: 0 0 12px var(--cian);
+    }
+
+    /* ======================= MENÚ ======================= */
+    #menu {
+      position: fixed; inset: 0; z-index: 4; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      background: #05040d;
+    }
+    #menu[hidden] { display: none; }
+
+    /* Vídeo de fondo + capa encima (viñeta, tinte de color y líneas de escaneo) */
+    #menu-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+    .velo {
+      position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(5,4,13,0.85) 100%),
+        linear-gradient(120deg, rgba(0,229,255,0.10), transparent 40%, transparent 60%, rgba(255,43,214,0.12));
+    }
+
+    /* ---------- Barra de arriba (estilo osu!) ---------- */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: stretch; height: 52px;
+      background: rgba(8, 7, 20, 0.7);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid transparent;
+      border-image: linear-gradient(90deg, transparent, var(--cian), var(--rosa), transparent) 1;
+      animation: bajar 0.6s ease-out both;
+    }
+    .tb-grupo { display: flex; align-items: stretch; }
+    .tb-sep { width: 1px; margin: 12px 6px; background: var(--borde); }
+
+    /* Cada icono de la barra */
+    .tb-btn {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      padding: 0 16px; border: none; background: none; cursor: pointer;
+      color: #b9b9c8; text-decoration: none; font-size: 12px; letter-spacing: 0.1em;
+      transition: color 0.2s, background 0.2s;
+    }
+    .tb-btn:hover { color: white; background: rgba(255,255,255,0.06); }
+    /* Rayita de luz debajo del icono activo / al pasar el ratón */
+    .tb-btn::after {
+      content: ""; position: absolute; left: 20%; right: 20%; bottom: 0; height: 2px;
+      background: var(--cian); box-shadow: 0 0 10px var(--cian);
+      transform: scaleX(0); transition: transform 0.25s;
+    }
+    .tb-btn:hover::after, .tb-btn.activo::after { transform: scaleX(1); }
+    .tb-btn.activo { color: white; }
+    .tb-btn.activo .ico { filter: drop-shadow(0 0 6px var(--cian)); }
+    .tb-btn.bloqueado .circulo { opacity: 0.45; }  /* solo el icono, no la etiqueta */
+    .tb-btn b { color: white; font-weight: 500; }
+
+    /* Modos de juego (círculos como los de osu!) */
+    .modo { padding: 0 10px; }
+    .modo span.circulo {
+      display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+      border: 1.5px solid currentColor;
+    }
+    .modo.activo span.circulo { background: white; color: #05040d; box-shadow: 0 0 14px rgba(255,255,255,0.6); }
+    .modo .ico { width: 17px; height: 17px; }
+
+    /* Usuario (Invitado + avatar) */
+    .usuario { gap: 10px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--cian), var(--violeta), var(--rosa));
+      display: grid; place-items: center; color: white;
+    }
+    .avatar .ico { width: 16px; height: 16px; }
+
+    /* Etiqueta flotante "Próximamente" */
+    .tb-btn[data-tip]:hover::before {
+      content: attr(data-tip); position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; padding: 6px 10px; font-size: 11px; letter-spacing: 0.1em;
+      background: rgba(8,7,20,0.95); border: 1px solid var(--borde); border-radius: 6px; color: white;
+    }
+
+    /* ---------- Banda central ---------- */
+    .banda {
+      position: relative; height: 120px; margin-bottom: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--cristal);       /* de lado a lado de la pantalla */
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    /* Líneas de luz arriba y abajo de la banda */
+    .banda::before, .banda::after {
+      content: ""; position: absolute; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cian), var(--rosa), transparent);
+    }
+    .banda::before { top: 0; }
+    .banda::after { bottom: 0; }
+
+    /* Núcleo central */
+    .nucleo {
+      position: relative; z-index: 2; flex-shrink: 0;
+      width: 240px; height: 240px; margin: 0 22px; padding: 0; border: none; border-radius: 50%;
+      cursor: pointer; background: none;
+      animation: aparecer 0.7s 0.2s cubic-bezier(.2,1.4,.4,1) both;
+    }
+    /* Aro de colores que gira */
+    .nucleo::before {
+      content: ""; position: absolute; inset: -6px; border-radius: 50%;
+      background: conic-gradient(var(--cian), var(--violeta), var(--rosa), var(--cian));
+      animation: girar 6s linear infinite;
+      filter: drop-shadow(0 0 18px rgba(0,229,255,0.6));
+    }
+    /* Anillo discontinuo exterior */
+    .nucleo::after {
+      content: ""; position: absolute; inset: -22px; border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.35);
+      animation: girar 20s linear infinite reverse;
+    }
+    .nucleo .cara {
+      position: absolute; inset: 0; border-radius: 50%; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 50% 35%, #231a55 0%, #0b0922 65%);
+      box-shadow: inset 0 0 50px rgba(0,229,255,0.25);
+      transition: transform 0.25s;
+    }
+    .nucleo:hover .cara { transform: scale(0.96); }
+    .nucleo:disabled { cursor: wait; }
+    .nucleo .cara svg { width: 58px; height: 58px; margin-bottom: 8px; stroke: var(--cian); stroke-width: 1.2; filter: drop-shadow(0 0 8px var(--cian)); animation: flotar 3s ease-in-out infinite; }
+    .logo { font-family: var(--futura); font-weight: 900; font-size: 25px; line-height: 1.05; letter-spacing: 0.06em; }
+    .logo span { color: var(--rosa); text-shadow: 0 0 14px var(--rosa); }
+    .nucleo small { margin-top: 10px; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--cian); animation: parpadeo 2s infinite; }
+
+    /* Botones inclinados */
+    .lado { display: flex; height: 100%; }   /* botones agrupados junto al núcleo */
+    .lado.izq { animation: entrarIzq 0.6s 0.35s ease-out both; }
+    .lado.der { animation: entrarDer 0.6s 0.35s ease-out both; }
+    .opcion {
+      position: relative; overflow: hidden;
+      width: 150px; height: 100%; margin: 0 -5px; border: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      color: white; text-decoration: none;
+      font-family: var(--futura); font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      transform: skewX(-14deg);
+      transition: width 0.3s, filter 0.3s;
+    }
+    .opcion > * { transform: skewX(14deg); }
+    .opcion .ico { width: 26px; height: 26px; }
+    .opcion:hover { width: 185px; filter: brightness(1.15); }   /* se alarga al pasar el ratón */
+    .opcion:disabled { filter: grayscale(0.6) brightness(0.7); cursor: wait; }
+    /* Brillo que cruza el botón al pasar el ratón */
+    .opcion::after {
+      content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      transition: left 0.5s;
+    }
+    .opcion:hover::after { left: 120%; }
+    .op-niveles   { background: linear-gradient(160deg, #2a2840, #15142a); border-left: 1px solid var(--borde); }
+    .op-controles { background: linear-gradient(160deg, #5a2fd0, #3a179a); }
+    .op-jugar     { background: linear-gradient(160deg, #36f0ff, #00a8c4); color: #02141a; }
+    .op-salir     { background: linear-gradient(160deg, #ff4fe0, #b80d90); }
+
+    /* ---------- Resultado de la partida ---------- */
+    .resultado {
+      position: absolute; left: 50%; bottom: calc(100% + 150px); transform: translateX(-50%);
+      min-width: 340px; padding: 18px 30px; text-align: center;
+      background: var(--cristal); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--borde); border-top: 2px solid var(--rosa);
+      clip-path: polygon(0 0, 100% 0, 100% 75%, 94% 100%, 6% 100%, 0 75%);
+      animation: aparecer 0.5s ease-out both;
+    }
+    .resultado[hidden] { display: none; }
+    .resultado.gana { border-top-color: var(--verde); }
+    .resultado small { font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--rosa); }
+    .resultado.gana small { color: var(--verde); }
+    .resultado h2 { margin: 6px 0 8px; font-family: var(--futura); font-weight: 900; font-size: 30px; letter-spacing: 0.04em; }
+    .resultado p { margin: 0; color: #b5b5c4; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .resultado p b { color: white; font-weight: 500; }
+
+    /* ---------- Pie ---------- */
+    .pie {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 28px; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #8a8a99;
+      background: linear-gradient(transparent, rgba(5,4,13,0.9));
+    }
+    kbd {
+      padding: 3px 9px; margin: 0 4px; border: 1px solid var(--cian); border-radius: 4px;
+      color: var(--cian); font-family: var(--mono); box-shadow: 0 0 8px rgba(0,229,255,0.35);
+    }
+
+    /* ---------- Panel lateral (Ajustes / Controles) ---------- */
+    #panel {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 6; width: 320px; padding: 26px;
+      background: rgba(8,7,20,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-left: 1px solid var(--violeta); box-shadow: -10px 0 40px rgba(123,44,255,0.25);
+      transform: translateX(100%); transition: transform 0.35s ease;
+    }
+    #panel.abierto { transform: none; }
+    #panel h3 { margin: 0 0 22px; font-family: var(--futura); font-size: 15px; letter-spacing: 0.25em; color: #c4a6ff; }
+    #panel .fila { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--borde); font-size: 13px; }
+    #panel .cerrar { position: absolute; top: 20px; right: 20px; border: none; background: none; cursor: pointer; color: #aaa; }
+    #panel .cerrar:hover { color: white; }
+
+    /* ---------- Animaciones ---------- */
+    @keyframes girar { to { transform: rotate(360deg); } }
+    @keyframes parpadeo { 50% { opacity: 0.4; } }
+    @keyframes flotar { 50% { transform: translateY(-5px); } }
+    @keyframes aparecer { from { opacity: 0; transform: scale(0.85); } }
+    @keyframes bajar { from { opacity: 0; transform: translateY(-100%); } }
+    @keyframes entrarIzq { from { opacity: 0; transform: translateX(-60px); } }
+    @keyframes entrarDer { from { opacity: 0; transform: translateX(60px); } }
+    /* .resultado usa translateX(-50%), así que su animación no puede usar transform */
+    .resultado { animation-name: aparecerSuave; }
+    @keyframes aparecerSuave { from { opacity: 0; } }
+
+    /* ---------- Móvil ---------- */
+    @media (max-width: 820px) {
+      .tb-btn { padding: 0 9px; }
+      .tb-btn .txt, .tb-sep, .modo:not(.activo) { display: none; }
+      .banda { flex-direction: column; height: auto; padding: 24px 0; gap: 26px; margin-bottom: 10px; }
+      .lado { height: 74px; }
+      .opcion { width: 120px; font-size: 10px; }
+      .opcion:hover { width: 130px; }
+      .nucleo { width: 190px; height: 190px; }
+      .logo { font-size: 20px; }
+      .resultado { bottom: auto; top: -120px; min-width: 280px; padding: 14px 18px; }
+      .resultado h2 { font-size: 22px; }
+      .pie .p-version { display: none; }
+      #panel { width: 100%; }
+    }
+  </style>
+  <!-- Three.js desde internet -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="texto">Cargando...</div>
+
+  <!-- ======================= MENÚ ======================= -->
+  <div id="menu">
+    <!-- Fondo: vídeo en bucle + capa de efectos -->
+    <video id="menu-video" src="menu-fondo.mp4" autoplay muted loop playsinline></video>
+    <div class="velo"></div>
+
+    <!-- Barra de arriba -->
+    <div class="topbar">
+      <!-- Izquierda: ajustes, inicio y modos de juego -->
+      <div class="tb-grupo">
+        <button class="tb-btn" id="btn-ajustes" title="Ajustes">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+        </button>
+        <a class="tb-btn" href="index.html" title="Volver a la web">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+        </a>
+        <div class="tb-sep"></div>
+        <button class="tb-btn modo activo" data-tip="Modo historia">
+          <span class="circulo"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2 21 7v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10"/></svg></span>
+          <span class="txt">Historia</span>
+        </button>
+        <button class="tb-btn modo bloqueado" data-tip="Modo infinito · Próximamente">
+          <span class="circulo"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8a4 4 0 1 0 0 8c3 0 7-8 10-8a4 4 0 1 1 0 8c-3 0-7-8-10-8z"/></svg></span>
+        </button>
+        <button class="tb-btn modo bloqueado" data-tip="Modo dúo · Próximamente">
+          <span class="circulo"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.5 0 4 1.6 4 4"/></svg></span>
+        </button>
+      </div>
+
+      <!-- Derecha: récord, gemas, usuario y menú -->
+      <div class="tb-grupo">
+        <div class="tb-btn" title="Mejor progreso">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6"/></svg>
+          <span class="txt">Récord</span> <b id="record">0%</b>
+        </div>
+        <div class="tb-btn" title="Gemas del nivel">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 4h12l3 5-9 11L3 9zM3 9h18"/></svg>
+          <b id="info-gemas">0</b>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn usuario">
+          <span class="txt">Invitado</span>
+          <span class="avatar"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2 21 7v10l-9 5-9-5V7z"/></svg></span>
+        </div>
+        <button class="tb-btn" id="btn-menu" title="Menú">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Banda central -->
+    <div class="banda">
+      <!-- Resultado de la última partida (oculto al principio) -->
+      <div class="resultado" id="resultado" hidden>
+        <small id="res-etiqueta">Derrota</small>
+        <h2 id="res-titulo">¡Pinchado!</h2>
+        <p id="res-datos"></p>
+      </div>
+
+      <div class="lado izq">
+        <a class="opcion op-niveles" href="index.html#escenarios">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5zM2 13l10 5 10-5"/></svg>
+          <span>Niveles</span>
+        </a>
+        <button class="opcion op-controles" id="btn-controles">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M18 10h0M7 14h10"/></svg>
+          <span>Controles</span>
+        </button>
+      </div>
+
+      <!-- Núcleo: pulsar para jugar -->
+      <button class="nucleo" id="btn-nucleo" disabled>
+        <span class="cara">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 2 21 7v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10"/></svg>
+          <span class="logo">CYBER<br>DASH <span>3D</span></span>
+          <small id="nucleo-texto">Cargando...</small>
+        </span>
+      </button>
+
+      <div class="lado der">
+        <button class="opcion op-jugar" id="btn-jugar" disabled>
+          <svg class="ico" viewBox="0 0 24 24" style="fill: currentColor"><path d="M7 4v16l13-8z"/></svg>
+          <span id="jugar-texto">Jugar</span>
+        </button>
+        <a class="opcion op-salir" href="index.html">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg>
+          <span>Salir</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Pie -->
+    <div class="pie">
+      <span class="p-version">Cyber Dash 3D · Alpha 0.1</span>
+      <span>Pulsa <kbd>Espacio</kbd> para empezar</span>
+    </div>
+  </div>
+
+  <!-- Panel lateral de ajustes / controles -->
+  <aside id="panel">
+    <button class="cerrar" id="btn-cerrar" title="Cerrar">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <h3>CONTROLES</h3>
+    <div class="fila"><span>Saltar</span><span><kbd>Espacio</kbd><kbd>↑</kbd></span></div>
+    <div class="fila"><span>Saltar (ratón)</span><kbd>Clic</kbd></div>
+    <div class="fila"><span>Saltar seguido</span><span>Mantener</span></div>
+    <div class="fila"><span>Pausa / menú</span><kbd>Esc</kbd></div>
+  </aside>
+
+  <!-- Si después de 5 segundos sigue "Cargando...", algo falla con juego.js o con internet -->
+  <script>
+    setTimeout(() => {
+      const t = document.getElementById('texto');
+      if (t.textContent === 'Cargando...') t.textContent = 'ERROR: no carga juego.js o Three.js (¿tienes internet? ¿lo abres con Live Server?)';
+    }, 5000);
+  </script>
+  <script type="module" src="juego.js"></script>
+</body>
+</html>
