@@ -19,27 +19,11 @@ const luz = new THREE.DirectionalLight(0xffffff, 2);
 luz.position.set(-5, 10, 5);
 scene.add(luz);
 
-// Niveles: cada uno con su pista, su música, su color de fondo y el color de sus gemas
-const NIVELES = [
-  { pista: 'modelos/pista.glb',  musica: 'musica/nivel1.mp3', cancion: 'Madame', fondo: 0x111111, colorGema: null },      // 1. Ciudad Neón
-  { pista: 'modelos/pista2.glb', musica: 'musica/nivel1.mp3', cancion: 'Madame', fondo: 0x0d0420, colorGema: 0xff2a4d },  // 2. Fábrica Láser
-];
-let nivel = 0;   // el nivel que se juega (0 = nivel 1, 1 = nivel 2)
-// Cosas del nivel actual (se cambian en elegirNivel)
-let bloques = [], pinchos = [], plataformas = [], lasers = [], gemas = [], meta;
-let cubo;
-const giro = new THREE.Group();
-let angulo = 0;   // giro del cubo en el aire (solo se ve, no cambia la caja de choque)
-
-// ---------- MODO DÚO (dos jugadores en el mismo teclado, pantalla dividida, solo nivel 1) ----------
-let modo = 'historia';        // 'historia' o 'duo' (se elige en la barra de arriba)
-let partidaDuo = false;       // true mientras dura una partida en dúo
-let jugadorActual = null;     // el jugador que se está moviendo en este momento
-const giro2 = new THREE.Group();   // el cubo del jugador 2
-const jugadores = [
-  { nombre: 'J1', giro: giro,  camara: new THREE.PerspectiveCamera(60, 1, 0.1, 500) },
-  { nombre: 'J2', giro: giro2, camara: new THREE.PerspectiveCamera(60, 1, 0.1, 500) },
-];
+// Datos del juego
+const bloques = [];  // cajas de los bloques
+const pinchos = [];  // cajas de los pinchos
+const gemas = [];    // objetos de las gemas
+let meta, cubo;
 let x = 0, y = 0, vy = 0;          // posición y velocidad del cubo
 let enSuelo = true, saltar = false, jugando = false, numGemas = 0;
 let tiempoAire = 0;   // tiempo desde que dejaste de pisar suelo (tiempo de coyote)
@@ -212,168 +196,7 @@ function primerToque() {
 addEventListener('pointerdown', primerToque, { once: true });
 addEventListener('keydown', primerToque, { once: true });
 
-$('rp-play').addEventListener('click', () => {
-  prepararAudio();
-  if (musica.paused) { musica.play().catch(() => {}); pausadaPorTi = false; }
-  else { musica.pause(); pausadaPorTi = true; }
-});
-
-const lienzo = $('visualizador');
-const pincel = lienzo.getContext('2d');
-pincel.scale(2, 2);                              // el lienzo es el doble de grande para que se vea nítido
-// Cambia el texto solo si es distinto (escribir en la página en cada fotograma la hace ir más lenta)
-function escribir(elemento, texto) {
-  if (elemento.textContent !== String(texto)) elemento.textContent = texto;
-}
-function dibujarMusica() {
-  escribir($('rp-play'), musica.paused ? '▶' : '❚❚');
-  $('rp-progreso').style.transform = 'scaleX(' + (musica.currentTime / musica.duration || 0) + ')';
-  pincel.clearRect(0, 0, 460, 460);
-  const nucleo = $('btn-nucleo');
-  if (!analizador || musica.paused) { nucleo.style.setProperty('--pulso', 1); return; }
-  analizador.getByteFrequencyData(frecuencias);
-
-  // Graves (las primeras frecuencias): el centro crece cuando suena el bajo
-  let grave = 0;
-  for (let i = 0; i < 8; i++) grave += frecuencias[i];
-  grave = grave / (8 * 255);                     // de 0 a 1
-  nucleo.style.setProperty('--pulso', (1 + grave * grave * 0.12).toFixed(3));
-
-  // Barras alrededor del centro, como el logo de osu!
-  const n = 72;
-  for (let i = 0; i < n; i++) {
-    const v = frecuencias[3 + (i < n / 2 ? i : n - i)] / 255;   // simétrico a los dos lados
-    const angulo = (i / n) * Math.PI * 2 - Math.PI / 2;
-    const r = 152, largo = 4 + v * v * 64;
-    const lados = Math.min(1, Math.abs(Math.sin(angulo)) * 2.5);   // a los lados se apagan para no tapar los botones
-    pincel.strokeStyle = 'hsla(' + (190 + v * 120) + ', 100%, 65%, ' + (0.35 + v * 0.6) * lados + ')';
-    pincel.lineWidth = 4;
-    pincel.beginPath();
-    pincel.moveTo(230 + Math.cos(angulo) * r, 230 + Math.sin(angulo) * r);
-    pincel.lineTo(230 + Math.cos(angulo) * (r + largo), 230 + Math.sin(angulo) * (r + largo));
-    pincel.stroke();
-  }
-}
-
-// ---------- Ventanas (Niveles, Ajustes, Cuenta, Funciones) ----------
-let ventanaAbierta = null;
-function abrir(id) {
-  cerrar();
-  ventanaAbierta = $(id);
-  ventanaAbierta.hidden = false;
-}
-function cerrar() {
-  if (ventanaAbierta) ventanaAbierta.hidden = true;
-  ventanaAbierta = null;
-}
-document.querySelectorAll('.cerrar').forEach((b) => b.addEventListener('click', cerrar));
-// Clic fuera de la caja también cierra
-document.querySelectorAll('.ventana').forEach((v) => v.addEventListener('click', (e) => { if (e.target === v) cerrar(); }));
-
-// Aviso pequeño abajo
-let temporizador;
-function aviso(mensaje) {
-  $('aviso').textContent = mensaje;
-  $('aviso').classList.add('visible');
-  clearTimeout(temporizador);
-  temporizador = setTimeout(() => $('aviso').classList.remove('visible'), 2200);
-}
-
-// ---------- Botones del menú ----------
-$('btn-nucleo').addEventListener('click', empezar);
-$('nivel-1').addEventListener('click', () => { elegirNivel(0); empezar(); });
-$('nivel-2').addEventListener('click', () => {
-  if (modo === 'duo') return aviso('El modo dúo solo tiene el nivel 1');
-  elegirNivel(1); empezar();
-});
-$('btn-niveles').addEventListener('click', () => abrir('v-niveles'));
-$('btn-ajustes').addEventListener('click', () => abrir('v-ajustes'));
-$('btn-ajustes2').addEventListener('click', () => abrir('v-ajustes'));
-$('btn-cuenta').addEventListener('click', () => abrir('v-cuenta'));
-$('btn-funciones').addEventListener('click', () => { abrir('v-funciones'); pestana('como'); });
-$('btn-controles').addEventListener('click', () => { abrir('v-funciones'); pestana('controles'); });
-document.querySelectorAll('.proximamente').forEach((b) => b.addEventListener('click', () => aviso('Próximamente')));
-
-// ---------- AJUSTES ----------
-function aplicarAjustes() {
-  camera.fov = ajustes.fov;
-  camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));   // calidad normal
-  $('hud').style.visibility = ajustes.verGemas ? 'visible' : 'hidden';
-  $('hud-duo').style.visibility = ajustes.verGemas ? 'visible' : 'hidden';
-  if (ajustes.fondoAnimado) video.play().catch(() => {}); else video.pause();
-  // Ponemos los valores guardados en los controles de la ventana
-  $('aj-fov').value = ajustes.fov;
-  $('aj-fov-valor').textContent = ajustes.fov + '°';
-  $('aj-gemas').checked = ajustes.verGemas;
-  $('aj-fondo').checked = ajustes.fondoAnimado;
-  musica.volume = ajustes.volumen / 100;
-  $('aj-volumen').value = ajustes.volumen;
-  $('aj-volumen-valor').textContent = ajustes.volumen + '%';
-}
-function cambiarAjustes() {
-  guardar('cyberdash-ajustes', ajustes);
-  aplicarAjustes();
-}
-$('aj-fov').addEventListener('input', (e) => { ajustes.fov = Number(e.target.value); cambiarAjustes(); });
-$('aj-gemas').addEventListener('change', (e) => { ajustes.verGemas = e.target.checked; cambiarAjustes(); });
-$('aj-fondo').addEventListener('change', (e) => { ajustes.fondoAnimado = e.target.checked; cambiarAjustes(); });
-$('aj-volumen').addEventListener('input', (e) => { ajustes.volumen = Number(e.target.value); cambiarAjustes(); });
-$('aj-borrar').addEventListener('click', () => {
-  NIVELES.forEach((d, n) => { records[n] = 0; guardar(claveRecord(n), 0); });
-  pintarRecord();
-  aviso('Récord borrado');
-});
-
-// ---------- CUENTA (se guarda en el navegador, no hay servidor) ----------
-let colorElegido = 'cian';
-document.querySelectorAll('.color').forEach((b) => b.addEventListener('click', () => {
-  document.querySelectorAll('.color').forEach((c) => c.classList.remove('elegido'));
-  b.classList.add('elegido');
-  colorElegido = b.dataset.color;
-}));
-$('form-cuenta').addEventListener('submit', (e) => {
-  e.preventDefault();                          // que el formulario no recargue la página
-  const nombre = $('cu-nombre').value.trim();
-  if (nombre.length < 3) return aviso('El nombre necesita 3 letras como mínimo');
-  perfil = { nombre: nombre, color: colorElegido, partidas: 0, gemas: 0 };
-  guardar('cyberdash-perfil', perfil);
-  pintarCuenta();
-  aviso('Bienvenido, ' + nombre);
-});
-$('cu-salir').addEventListener('click', () => {
-  perfil = null;
-  guardar('cyberdash-perfil', null);
-  pintarCuenta();
-  aviso('Sesión cerrada');
-});
-function pintarCuenta() {
-  const dentro = perfil !== null;
-  $('form-cuenta').hidden = dentro;            // sin sesión: formulario
-  $('cu-perfil').hidden = !dentro;             // con sesión: perfil
-  $('tb-nombre').textContent = dentro ? perfil.nombre : 'Invitado';
-  $('tb-avatar').dataset.color = dentro ? perfil.color : '';
-  if (dentro) {
-    $('cu-saludo').textContent = perfil.nombre;
-    $('cu-avatar').dataset.color = perfil.color;
-    $('cu-partidas').textContent = perfil.partidas;
-    $('cu-gemas').textContent = perfil.gemas;
-    $('cu-record').textContent = records[nivel] + '%';
-  }
-}
-
-// ---------- FUNCIONES (pestañas) ----------
-function pestana(nombre) {
-  document.querySelectorAll('.pestana').forEach((p) => p.classList.toggle('activa', p.dataset.p === nombre));
-  document.querySelectorAll('.seccion').forEach((s) => { s.hidden = s.dataset.p !== nombre; });
-}
-document.querySelectorAll('.pestana').forEach((p) => p.addEventListener('click', () => pestana(p.dataset.p)));
-
-// ---------- Teclado y ratón ----------
-const pantallaFin = $('pantalla-fin');
-const pantallaPausa = $('pantalla-pausa');
-let finHora = 0;   // momento en que salió la pantalla de muerte (para no reintentar sin querer)
-
+// Teclado: Espacio / ↑ saltan (en el menú empiezan la partida). Esc vuelve al menú
 addEventListener('keydown', (e) => {
   if (e.code === 'Escape') {                   // Esc: cerrar ventana, pausar, continuar o ir al menú
     if (ventanaAbierta) return cerrar();
@@ -470,36 +293,10 @@ function listo() {
   $('btn-nucleo').disabled = false;
   $('nucleo-texto').textContent = 'Pulsa para jugar';
   $('info-gemas').textContent = gemas.length;
-  $('n1-gemas').textContent = NIVELES[0].gemas.length;
-  $('n2-gemas').textContent = NIVELES[1].gemas.length;
 }
 
-// HUD: se actualiza en cada fotograma mientras juegas
-function actualizarHUD() {
-  const p = progresoActual();
-  escribir($('hud-puntos'), calcularPuntos(false));
-  const textoGemas = numGemas + '/' + gemas.length;
-  if ($('hud-gemas').textContent !== textoGemas && numGemas > 0) {   // acabas de coger una gema
-    $('hud-gemas').classList.remove('coge');
-    void $('hud-gemas').offsetWidth;                                 // truco para reiniciar la animación
-    $('hud-gemas').classList.add('coge');
-  }
-  escribir($('hud-gemas'), textoGemas);
-  if ($('hud-pct').textContent !== p + '%') {
-    $('hud-pct').textContent = p + '%';
-    $('hud-barra').style.width = p + '%';
-  }
-}
-
-function pintarRecord() {
-  $('record').textContent = records[nivel] + '%';       // arriba: el récord del nivel elegido
-  $('n1-record').textContent = records[0] + '%';
-  $('n2-record').textContent = records[1] + '%';
-  $('cu-record').textContent = records[nivel] + '%';
-}
-
-// Al morir o llegar a la meta: pantalla de resultado
-function fin(causa, gana) {
+// Al morir, ganar o pausar: vuelve el menú con el resultado
+function fin(mensaje, gana) {
   jugando = false;
   saltar = false;
   const progreso = gana ? 100 : progresoActual();
